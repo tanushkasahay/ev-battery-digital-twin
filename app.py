@@ -5,6 +5,7 @@ Visualizes multi-cell telemetry, PyTorch AI estimations, thermal heatmaps, and M
 import os
 import sys
 import time
+import hmac
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -25,6 +26,46 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+def require_login():
+    """Show a login form and stop the dashboard until credentials match secrets."""
+    try:
+        expected_username = str(st.secrets["auth"]["username"])
+        expected_password = str(st.secrets["auth"]["password"])
+    except (KeyError, FileNotFoundError):
+        st.error("Login is not configured. Add [auth] username and password to Streamlit secrets.")
+        st.stop()
+
+    if st.session_state.get("authenticated", False):
+        with st.sidebar:
+            st.caption(f"Signed in as **{st.session_state.get('auth_username', '')}**")
+            if st.button("Log out", use_container_width=True):
+                st.session_state.pop("authenticated", None)
+                st.session_state.pop("auth_username", None)
+                st.rerun()
+        return
+
+    st.title("🔒 EV Battery Digital Twin")
+    st.caption("Sign in to access the project dashboard.")
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
+
+    if submitted:
+        username_ok = hmac.compare_digest(username.encode("utf-8"), expected_username.encode("utf-8"))
+        password_ok = hmac.compare_digest(password.encode("utf-8"), expected_password.encode("utf-8"))
+        if username_ok and password_ok:
+            st.session_state["authenticated"] = True
+            st.session_state["auth_username"] = username
+            st.rerun()
+        st.error("Incorrect username or password.")
+
+    st.stop()
+
+
+require_login()
 
 # Custom CSS for high-tech dark automotive telematics aesthetic
 st.markdown(

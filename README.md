@@ -146,6 +146,20 @@ Traditional vehicle BMS relies on Coulomb counting ($\int I dt$), which drifts s
 
 ## 🚀 Quickstart & Execution Guide
 
+### Dashboard sign-in
+
+The dashboard requires a username and password configured as Streamlit secrets. Never commit the credentials.
+
+For local use, create `.streamlit/secrets.toml` in the project root:
+
+```toml
+[auth]
+username = "choose-a-username"
+password = "choose-a-long-unique-password"
+```
+
+For Streamlit Community Cloud, open the app's **Settings → Secrets** and add the same TOML values there. The `.streamlit/secrets.toml` file is ignored by Git. Each signed-in browser session has a **Log out** button in the sidebar.
+
 ### 1. Launch the Interactive Digital Twin Dashboard
 To run the full end-to-end system with interactive UI:
 ```bash
